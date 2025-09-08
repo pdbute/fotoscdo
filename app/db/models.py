@@ -24,4 +24,8 @@ class Photo(Base):
 
     data: Mapped[bytes] = mapped_column(LargeBinary)
 
+    # NUEVO: fecha/hora de captura extraída del EXIF (puede ser nula)
+    captured_at: Mapped[object] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+
+    # Fecha de inserción del registro
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())

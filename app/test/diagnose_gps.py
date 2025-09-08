@@ -1,4 +1,6 @@
-import io
+#!/usr/bin/env python3
+import io, sys
+from PIL import Image
 import logging
 import re
 from typing import Tuple, Dict, Optional
@@ -16,8 +18,7 @@ try:
 except Exception:
     pass
 
-from app.core.settings import get_settings
-settings = get_settings()
+
 logger = logging.getLogger("app")
 
 
@@ -369,3 +370,18 @@ class ImageService:
 
         w, h = img.size
         return b, w, h, "image/jpeg"
+
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Uso: python scripts/diagnose_gps.py /ruta/imagen.jpg")
+        sys.exit(1)
+    path = sys.argv[1]
+    data = open(path, "rb").read()
+    img = Image.open(io.BytesIO(data))
+    gps = ImageService.extract_gps_from_original(data, img)
+    print("GPS detectado:", gps)
+
+if __name__ == "__main__":
+    main()

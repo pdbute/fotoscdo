@@ -182,37 +182,5 @@ def get_meta(photo_id: str):
             id=p.id, cdo=p.cdo, lon=pt.x, lat=pt.y,
             mime_type=p.mime_type, size_bytes=p.size_bytes,
             width=p.width, height=p.height, exif=p.exif
-            # captured_at=p.captured_at,
-            # created_at=p.created_at,
         )
 
-
-@router.get("/viewer", response_class=HTMLResponse)
-def viewer(cdo: str | None = None, lon: float | None = None, lat: float | None = None, radius_m: int = 200):
-    if not cdo and (lon is None or lat is None):
-        return HTMLResponse("<h3>Pasá ?cdo=... o ?lon=...&lat=...&radius_m=...</h3>", status_code=400)
-
-    with SessionLocal() as db:
-        if cdo:
-            rows = db.query(Photo).filter(Photo.cdo == cdo).all()
-        else:
-            rows = db.query(Photo).filter(
-                text("ST_DWithin(geom, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, :r)")
-            ).params(lon=lon, lat=lat, r=radius_m).all()
-
-    cards = []
-    for p in rows:
-        cards.append(
-            f'<div style="display:inline-block;margin:8px;text-align:center">'
-            f'<img src="/photos/{p.id}/image" style="max-width:320px;display:block;border-radius:8px"/>'
-            f'<small>{p.cdo}<br/>{p.id}</small></div>'
-        )
-
-    html = f"""
-    <html><head><meta charset="utf-8"><title>Viewer</title></head>
-    <body style="font-family:sans-serif">
-      <h2>Fotos ({'CDO '+cdo if cdo else f'lon={lon}, lat={lat}, r={radius_m}m'})</h2>
-      {''.join(cards) if cards else '<p>No hay resultados.</p>'}
-    </body></html>
-    """
-    return HTMLResponse(html)
